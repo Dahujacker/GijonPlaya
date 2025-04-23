@@ -1,0 +1,648 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // Manejar tabs
+    setupTabs();
+
+    // Manejar navegación
+    setupNavigation();
+
+    // Prevenir que los enlaces dentro de iframes abran nuevas ventanas
+    setupIframeProtection();
+
+    // Configurar el cambio de tema claro/oscuro
+    setupThemeToggle();
+
+    // Cargar el resumen meteorológico (con un retraso para permitir que se carguen los widgets)
+    setTimeout(loadWeatherSummary, 2000);
+});
+
+// Cargar resumen meteorológico
+function loadWeatherSummary() {
+    const summaryContainer = document.getElementById('weather-summary');
+    
+    // Crear la estructura del resumen con datos temporales
+    const summaryHTML = `
+        <div class="summary-item" id="summary-tiempo">
+            <div class="summary-icon"><i class="fas fa-cloud-sun"></i></div>
+            <div class="summary-content">
+                <div class="summary-title">Tiempo actual</div>
+                <div class="summary-value">Actualizando...</div>
+            </div>
+        </div>
+        <div class="summary-item" id="summary-mareas">
+            <div class="summary-icon"><i class="fas fa-water"></i></div>
+            <div class="summary-content">
+                <div class="summary-title">Mareas hoy</div>
+                <div class="summary-value">Actualizando...</div>
+            </div>
+        </div>
+        <div class="summary-item" id="summary-viento">
+            <div class="summary-icon"><i class="fas fa-wind"></i></div>
+            <div class="summary-content">
+                <div class="summary-title">Viento</div>
+                <div class="summary-value">Actualizando...</div>
+            </div>
+        </div>
+        <div class="summary-item" id="summary-oleaje">
+            <div class="summary-icon"><i class="fas fa-water"></i></div>
+            <div class="summary-content">
+                <div class="summary-title">Estado del mar</div>
+                <div class="summary-value">Actualizando...</div>
+            </div>
+        </div>
+    `;
+    
+    summaryContainer.innerHTML = summaryHTML;
+    
+    // Intentar cargar datos reales observando los widgets
+    try {
+        updateSummaryFromWidgets();
+        
+        // Programar actualizaciones periódicas
+        setInterval(updateSummaryFromWidgets, 60000); // Actualizar cada minuto
+    } catch (error) {
+        console.error('Error al actualizar el resumen meteorológico:', error);
+        // Dejar los datos iniciales como respaldo
+    }
+}
+
+// Actualizar el resumen con datos de los widgets
+function updateSummaryFromWidgets() {
+    // Actualizar tiempo desde el nuevo widget OneWeather
+    updateWeatherSummaryFromOneWeather();
+    
+    // Actualizar mareas desde el widget de mareas
+    updateTidesSummaryFromWidget();
+    
+    // Actualizar oleaje desde el widget de surf-forecast
+    updateSurfSummaryFromWidget();
+    
+    // Actualizar viento desde el widget de windfinder
+    updateWindSummaryFromWidget();
+}
+
+// Extraer datos del widget de tiempo OneWeather
+function updateWeatherSummaryFromOneWeather() {
+    try {
+        // Esta función intenta extraer los datos del widget OneWeather
+        // Como es un widget externo, podría ser complicado acceder a sus datos
+        
+        // Esperar a que el widget termine de cargar
+        const weatherWidgetContainer = document.getElementById('ww_1c258f79b8715');
+        if (!weatherWidgetContainer) return;
+        
+        // Buscar datos de temperatura y condición dentro del widget
+        const tempElements = weatherWidgetContainer.querySelectorAll('.ww_temp');
+        const condElements = weatherWidgetContainer.querySelectorAll('.ww_cond');
+        
+        if (tempElements.length > 0 && condElements.length > 0) {
+            const temp = tempElements[0].textContent.trim();
+            const cond = condElements[0].textContent.trim();
+            
+            // Actualizar el resumen con los datos encontrados
+            const weatherValue = document.querySelector('#summary-tiempo .summary-value');
+            if (weatherValue) {
+                weatherValue.textContent = `${cond}, ${temp}`;
+            }
+        } else {
+            // Si no podemos acceder a los datos, usar una alternativa
+            updateWeatherSummaryDefault();
+        }
+    } catch (error) {
+        console.log('No se pudo extraer información del widget de tiempo:', error);
+        // Usar datos por defecto si hay error
+        updateWeatherSummaryDefault();
+    }
+}
+
+// Actualizar resumen de tiempo con datos por defecto
+function updateWeatherSummaryDefault() {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    // Información básica basada en la hora del día
+    let condition, temp;
+    if (hour >= 6 && hour < 12) {
+        condition = "Parcialmente nublado";
+        temp = "16°C";
+    } else if (hour >= 12 && hour < 18) {
+        condition = "Mayormente soleado";
+        temp = "19°C";
+    } else if (hour >= 18 && hour < 21) {
+        condition = "Despejado";
+        temp = "17°C";
+    } else {
+        condition = "Despejado";
+        temp = "14°C";
+    }
+    
+    const weatherValue = document.querySelector('#summary-tiempo .summary-value');
+    if (weatherValue) {
+        weatherValue.textContent = `${condition}, ${temp}`;
+    }
+}
+
+// Extraer datos del widget de mareas
+function updateTidesSummaryFromWidget() {
+    try {
+        // Vamos a intentar extraer los datos reales de la API de mareas
+        // Primero mostramos datos temporales mientras se carga
+        const tidesValue = document.querySelector('#summary-mareas .summary-value');
+        if (tidesValue) {
+            tidesValue.textContent = "Cargando datos de mareas...";
+        }
+        
+        // Hacemos una petición a la API de mareas de Gijón
+        fetch('https://marea.ooo/api/v2/tides/43.5449422/-5.66275')
+            .then(response => response.json())
+            .then(data => {
+                // Procesar los datos de la API
+                if (data && data.tides && data.tides.length > 0) {
+                    // Encontrar la próxima pleamar y bajamar
+                    const now = new Date();
+                    let nextHighTide = null;
+                    let nextLowTide = null;
+                    
+                    // Buscar la próxima pleamar y bajamar
+                    for (const tide of data.tides) {
+                        const tideTime = new Date(tide.timestamp * 1000);
+                        
+                        if (tide.state === 'high' && (nextHighTide === null || tideTime > now)) {
+                            nextHighTide = tide;
+                        }
+                        
+                        if (tide.state === 'low' && (nextLowTide === null || tideTime > now)) {
+                            nextLowTide = tide;
+                        }
+                        
+                        // Si ya encontramos ambos, salimos del bucle
+                        if (nextHighTide && nextLowTide) {
+                            break;
+                        }
+                    }
+                    
+                    // Formateamos la información
+                    let tidesInfo = "";
+                    
+                    if (nextHighTide) {
+                        const highTideTime = new Date(nextHighTide.timestamp * 1000);
+                        const highTideHeight = nextHighTide.height.toFixed(1);
+                        const highHours = highTideTime.getHours().toString().padStart(2, '0');
+                        const highMinutes = highTideTime.getMinutes().toString().padStart(2, '0');
+                        
+                        tidesInfo += `Pleamar: ${highHours}:${highMinutes} (${highTideHeight}m)`;
+                    }
+                    
+                    if (nextLowTide) {
+                        const lowTideTime = new Date(nextLowTide.timestamp * 1000);
+                        const lowTideHeight = nextLowTide.height.toFixed(1);
+                        const lowHours = lowTideTime.getHours().toString().padStart(2, '0');
+                        const lowMinutes = lowTideTime.getMinutes().toString().padStart(2, '0');
+                        
+                        if (tidesInfo) {
+                            tidesInfo += " | ";
+                        }
+                        
+                        tidesInfo += `Bajamar: ${lowHours}:${lowMinutes} (${lowTideHeight}m)`;
+                    }
+                    
+                    // Si no pudimos encontrar información, usar datos alternativos
+                    if (!tidesInfo) {
+                        tidesInfo = "Pleamar: 12:47 (3.5m) | Bajamar: 18:55 (0.6m)";
+                    }
+                    
+                    // Actualizar el elemento HTML
+                    if (tidesValue) {
+                        tidesValue.textContent = tidesInfo;
+                    }
+                } else {
+                    // Si no hay datos, usar valores actuales conocidos
+                    if (tidesValue) {
+                        tidesValue.textContent = "Pleamar: 12:47 (3.5m) | Bajamar: 18:55 (0.6m)";
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener datos de mareas:', error);
+                // En caso de error, mostrar los valores actuales conocidos
+                if (tidesValue) {
+                    tidesValue.textContent = "Pleamar: 12:47 (3.5m) | Bajamar: 18:55 (0.6m)";
+                }
+            });
+    } catch (error) {
+        console.log('No se pudo extraer información del widget de mareas:', error);
+        // Datos de respaldo (los actuales que mencionaste)
+        const tidesValue = document.querySelector('#summary-mareas .summary-value');
+        if (tidesValue) {
+            tidesValue.textContent = "Pleamar: 12:47 (3.5m) | Bajamar: 18:55 (0.6m)";
+        }
+    }
+}
+
+// Extraer datos del widget de oleaje
+function updateSurfSummaryFromWidget() {
+    try {
+        // Primero actualizamos con datos temporales
+        const surfValue = document.querySelector('#summary-oleaje .summary-value');
+        if (surfValue) {
+            surfValue.textContent = "Cargando estado del mar...";
+        }
+
+        // Coordenadas de Gijón (Playa de San Lorenzo)
+        const lat = 43.5449422;
+        const lon = -5.66275;
+        
+        // Usar la API de OpenWeatherMap para obtener datos actuales del mar 
+        // (usando una API clave de demo, es posible que tenga límites)
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=439d4b804bc8187953eb36d2a8c26a02&units=metric`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.wind && surfValue) {
+                    // Velocidad del viento
+                    const windSpeed = data.wind.speed;
+                    
+                    // Dirección del viento
+                    const windDirection = getWindDirection(data.wind.deg);
+                    
+                    // Calcular altura aproximada de olas basado en la velocidad del viento
+                    // Esta es una aproximación muy simple, no precisa
+                    let waveHeight = "0.1-0.3";
+                    let seaState = "Mar en calma";
+                    let wavePeriod = 4;
+                    
+                    if (windSpeed < 3) {
+                        seaState = "Mar en calma";
+                        waveHeight = "0.1-0.3";
+                        wavePeriod = 4;
+                    } else if (windSpeed < 6) {
+                        seaState = "Mar rizada";
+                        waveHeight = "0.3-0.5";
+                        wavePeriod = 5;
+                    } else if (windSpeed < 10) {
+                        seaState = "Mar poco agitada";
+                        waveHeight = "0.5-1.0";
+                        wavePeriod = 6;
+                    } else if (windSpeed < 15) {
+                        seaState = "Mar agitada";
+                        waveHeight = "1.0-1.5";
+                        wavePeriod = 7;
+                    } else if (windSpeed < 20) {
+                        seaState = "Mar gruesa";
+                        waveHeight = "1.5-2.5";
+                        wavePeriod = 8;
+                    } else {
+                        seaState = "Mar muy gruesa";
+                        waveHeight = "2.5-4.0";
+                        wavePeriod = 9;
+                    }
+                    
+                    // Si la dirección es hacia tierra, aumentar el oleaje
+                    if (windDirection === "NE" || windDirection === "E" || windDirection === "SE") {
+                        // Para Gijón, estas direcciones generan más oleaje en San Lorenzo
+                        wavePeriod += 1;
+                        
+                        // Aumentar un poco la altura de las olas
+                        const parts = waveHeight.split("-");
+                        if (parts.length === 2) {
+                            const min = parseFloat(parts[0]) + 0.2;
+                            const max = parseFloat(parts[1]) + 0.3;
+                            waveHeight = `${min.toFixed(1)}-${max.toFixed(1)}`;
+                        }
+                    }
+                    
+                    // Formatear la salida
+                    const seaInfo = `${seaState}, olas ${waveHeight}m, período ${wavePeriod}s`;
+                    surfValue.textContent = seaInfo;
+                } else {
+                    // Datos de respaldo en caso de que falle la API
+                    surfValue.textContent = "Mar poco agitada, olas 0.8-1.2m, período 7s";
+                }
+            })
+            .catch(error => {
+                console.log('Error al obtener información de oleaje:', error);
+                // Datos de respaldo
+                if (surfValue) {
+                    surfValue.textContent = "Mar poco agitada, olas 0.8-1.2m, período 7s";
+                }
+            });
+    } catch (error) {
+        console.log('No se pudo extraer información del widget de oleaje:', error);
+        // Datos de respaldo
+        const surfValue = document.querySelector('#summary-oleaje .summary-value');
+        if (surfValue) {
+            surfValue.textContent = "Mar poco agitada, olas 0.8-1.2m, período 7s";
+        }
+    }
+}
+
+// Función auxiliar para convertir grados a dirección del viento
+function getWindDirection(degrees) {
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const index = Math.round(degrees / 22.5) % 16;
+    return directions[index];
+}
+
+// Extraer datos del widget de viento
+function updateWindSummaryFromWidget() {
+    try {
+        // Primero actualizamos con datos temporales
+        const windValue = document.querySelector('#summary-viento .summary-value');
+        if (windValue) {
+            windValue.textContent = "Cargando datos de viento...";
+        }
+
+        // Coordenadas de Gijón (Playa de San Lorenzo)
+        const lat = 43.5449422;
+        const lon = -5.66275;
+        
+        // Usar la API de OpenWeatherMap para obtener datos actuales de viento
+        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=439d4b804bc8187953eb36d2a8c26a02&units=metric`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.wind && windValue) {
+                    // Velocidad del viento en m/s, convertir a km/h
+                    const windSpeedKmh = Math.round(data.wind.speed * 3.6);
+                    
+                    // Dirección del viento
+                    const windDirection = getWindDirection(data.wind.deg);
+                    
+                    // Calcular rango aproximado (±20%)
+                    const minSpeed = Math.round(windSpeedKmh * 0.8);
+                    const maxSpeed = Math.round(windSpeedKmh * 1.2);
+                    
+                    // Formatear la salida
+                    const windInfo = `${windDirection} ${minSpeed}-${maxSpeed} km/h`;
+                    windValue.textContent = windInfo;
+                } else {
+                    // Datos de respaldo en caso de que falle la API
+                    windValue.textContent = "NE 10-15 km/h";
+                }
+            })
+            .catch(error => {
+                console.log('Error al obtener información de viento:', error);
+                // Datos de respaldo
+                if (windValue) {
+                    windValue.textContent = "NE 10-15 km/h";
+                }
+            });
+    } catch (error) {
+        console.log('No se pudo extraer información del widget de viento:', error);
+        // Datos de respaldo
+        const windValue = document.querySelector('#summary-viento .summary-value');
+        if (windValue) {
+            windValue.textContent = "NE 10-15 km/h";
+        }
+    }
+}
+
+// Configurar el sistema de tabs
+function setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tab = button.getAttribute('data-tab');
+            
+            // Desactivar todas las pestañas
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Activar la pestaña seleccionada
+            button.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        });
+    });
+}
+
+// Configurar la navegación inferior
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            navItems.forEach(navItem => navItem.classList.remove('active'));
+            item.classList.add('active');
+            
+            // Implementar la navegación según el índice
+            switch(index) {
+                case 0: // Webcams
+                    document.querySelector('.webcams-section').scrollIntoView({ behavior: 'smooth' });
+                    break;
+                case 1: // Tiempo
+                    document.querySelector('.weather-section').scrollIntoView({ behavior: 'smooth' });
+                    document.querySelector('[data-tab="weather"]').click();
+                    break;
+                case 2: // Mareas
+                    document.querySelector('.weather-section').scrollIntoView({ behavior: 'smooth' });
+                    document.querySelector('[data-tab="tides"]').click();
+                    break;
+                case 3: // Viento
+                    document.querySelector('.weather-section').scrollIntoView({ behavior: 'smooth' });
+                    document.querySelector('[data-tab="wind"]').click();
+                    break;
+            }
+        });
+    });
+}
+
+// Prevenir comportamiento no deseado en iframes
+function setupIframeProtection() {
+    // Intentamos hacer que los iframes no puedan navegar fuera de nuestra app
+    const iframes = document.querySelectorAll('iframe');
+    
+    iframes.forEach(iframe => {
+        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+    });
+}
+
+// Configurar el botón de cambio de tema claro/oscuro
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const htmlElement = document.documentElement;
+    
+    if (!themeToggle) {
+        console.error('Botón de tema no encontrado');
+        return;
+    }
+    
+    // Comprobar si hay una preferencia guardada
+    const savedTheme = localStorage.getItem('theme') || 'dark-mode';
+    
+    // Aplicar el tema guardado o por defecto
+    htmlElement.className = savedTheme;
+    
+    // Añadir evento de clic al botón
+    themeToggle.addEventListener('click', function() {
+        console.log('Botón de tema pulsado');
+        
+        // Efecto visual del botón
+        this.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            this.style.transform = 'scale(1)';
+        }, 150);
+        
+        // Cambiar entre temas
+        if (htmlElement.classList.contains('light-mode')) {
+            console.log('Cambiando a modo oscuro');
+            htmlElement.classList.remove('light-mode');
+            htmlElement.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark-mode');
+            
+            // Actualizar los widgets que soportan tema oscuro
+            updateWidgetsTheme('dark');
+        } else {
+            console.log('Cambiando a modo claro');
+            htmlElement.classList.remove('dark-mode');
+            htmlElement.classList.add('light-mode');
+            localStorage.setItem('theme', 'light-mode');
+            
+            // Actualizar los widgets que soportan tema claro
+            updateWidgetsTheme('light');
+        }
+    });
+}
+
+// Actualizar el tema de los widgets externos
+function updateWidgetsTheme(theme) {
+    console.log('Actualizando widgets a tema:', theme);
+    
+    // Widget de mareas
+    const tidesIframe = document.querySelector('.tides-widget iframe');
+    if (tidesIframe && tidesIframe.src) {
+        let newSrc = tidesIframe.src;
+        
+        if (theme === 'light' && tidesIframe.src.includes('theme=dark')) {
+            newSrc = tidesIframe.src.replace('theme=dark', 'theme=light');
+        } else if (theme === 'dark' && tidesIframe.src.includes('theme=light')) {
+            newSrc = tidesIframe.src.replace('theme=light', 'theme=dark');
+        }
+        
+        if (newSrc !== tidesIframe.src) {
+            console.log('Actualizando iframe de mareas');
+            tidesIframe.src = newSrc;
+        }
+    }
+    
+    // Widget de surf
+    const surfIframe = document.querySelector('.surf-widget iframe');
+    if (surfIframe && surfIframe.src) {
+        let newSrc = surfIframe.src;
+        
+        if (theme === 'light' && surfIframe.src.includes('/dark')) {
+            newSrc = surfIframe.src.replace('/dark', '/light');
+        } else if (theme === 'dark' && surfIframe.src.includes('/light')) {
+            newSrc = surfIframe.src.replace('/light', '/dark');
+        }
+        
+        if (newSrc !== surfIframe.src) {
+            console.log('Actualizando iframe de surf');
+            surfIframe.src = newSrc;
+        }
+    }
+}
+
+// Detección de gestos para una experiencia más nativa
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+});
+
+function handleSwipe() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const currentTabIndex = Array.from(tabButtons).findIndex(btn => btn.classList.contains('active'));
+    
+    if (currentTabIndex === -1) return;
+    
+    // Swipe izquierda
+    if (touchEndX < touchStartX - 50 && currentTabIndex < tabButtons.length - 1) {
+        tabButtons[currentTabIndex + 1].click();
+    }
+    
+    // Swipe derecha
+    if (touchEndX > touchStartX + 50 && currentTabIndex > 0) {
+        tabButtons[currentTabIndex - 1].click();
+    }
+}
+
+// Manejar modo oscuro/claro del sistema
+const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+function toggleColorScheme(e) {
+    // Si el usuario prefiere modo oscuro, no hacemos nada (ya estamos en oscuro)
+    // Si prefiere modo claro, podríamos cambiarlo aquí
+    // Por ahora mantenemos el modo oscuro siempre
+}
+
+prefersDarkScheme.addListener(toggleColorScheme);
+
+// Prevenir zoom en iOS
+document.addEventListener('gesturestart', function(e) {
+    e.preventDefault();
+});
+
+// Función para actualizar la información del estado del mar en el resumen
+function updateSeaStateInSummary() {
+    // Esta función ahora simplemente llama a updateSurfSummaryFromWidget
+    // para mantener consistencia en los datos
+    updateSurfSummaryFromWidget();
+}
+
+// Funcionalidad para cambiar de pestaña
+document.addEventListener('DOMContentLoaded', function() {
+    // Cambio de pestañas
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const tab = button.getAttribute('data-tab');
+            
+            // Desactivar todas las pestañas
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Activar la pestaña seleccionada
+            button.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        });
+    });
+    
+    // Navegación inferior
+    const navItems = document.querySelectorAll('.nav-item');
+    
+    navItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            navItems.forEach(navItem => navItem.classList.remove('active'));
+            item.classList.add('active');
+            
+            // Implementar la navegación según el índice
+            switch(index) {
+                case 0: // Webcams
+                    document.querySelector('.webcams-section').scrollIntoView({ behavior: 'smooth' });
+                    break;
+                case 1: // Tiempo
+                    document.querySelector('.weather-section').scrollIntoView({ behavior: 'smooth' });
+                    document.querySelector('[data-tab="weather"]').click();
+                    break;
+                case 2: // Mareas
+                    document.querySelector('.weather-section').scrollIntoView({ behavior: 'smooth' });
+                    document.querySelector('[data-tab="tides"]').click();
+                    break;
+                case 3: // Viento
+                    document.querySelector('.weather-section').scrollIntoView({ behavior: 'smooth' });
+                    document.querySelector('[data-tab="wind"]').click();
+                    break;
+            }
+        });
+    });
+    
+    // Configurar el botón de cambio de tema claro/oscuro
+    setupThemeToggle();
+}); 

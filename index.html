@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es" class="dark-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Gijón Live</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/gijon-icon-192.png">
+    <link rel="icon" type="image/png" href="icons/gijon-icon-192.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Precargar fuentes e iconos -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Barra superior estilo iOS -->
+        <header class="app-header">
+            <h1>Gijón Live</h1>
+            <div class="status-icons">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Cambiar tema claro/oscuro">
+                    <i class="fas fa-sun"></i>
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sección principal de webcams -->
+        <section class="webcams-section">
+            <div class="webcam-grid">
+                <div class="webcam-card" id="webcam-1">
+                    <h3>Playa San Lorenzo IZQ</h3>
+                    <div class="webcam-container">
+                        <iframe src="https://v.angelcam.com/iframe?v=v8ypkz90l6&autoplay=1" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                    </div>
+                </div>
+                <div class="webcam-card" id="webcam-2">
+                    <h3>Playa San Lorenzo DCHA</h3>
+                    <div class="webcam-container">
+                        <iframe src="https://v.angelcam.com/iframe?v=vboykjz9r8&autoplay=1" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                    </div>
+                </div>
+                <div class="webcam-card" id="webcam-3">
+                    <h3>Playa Poniente</h3>
+                    <div class="webcam-container">
+                        <iframe src="https://rtsp.me/embed/tbdN5Ybr/" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                    </div>
+                </div>
+                <div class="webcam-card" id="webcam-4">
+                    <h3>Tostaderu</h3>
+                    <div class="webcam-container">
+                        <iframe src="https://rtsp.me/embed/67Q26etY/" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de información meteorológica con scroll horizontal -->
+        <section class="weather-section">
+            <h2 class="section-title">Meteorología</h2>
+            <div class="weather-tabs">
+                <button class="tab-button active" data-tab="weather">Tiempo</button>
+                <button class="tab-button" data-tab="tides">Mareas</button>
+                <button class="tab-button" data-tab="surf">Oleaje</button>
+                <button class="tab-button" data-tab="sea">Estado Mar</button>
+                <button class="tab-button" data-tab="wind">Viento</button>
+            </div>
+            <div class="weather-content">
+                <div class="tab-content active" id="weather-tab">
+                    <div class="weather-widget">
+                        <!-- Widget de AEMET -->
+                        <iframe name="iframe_aemet_id33044" width="100%" height="400px" tabindex="0" id="iframe_aemet_id33044" src="https://www.aemet.es/es/eltiempo/prediccion/municipios/mostrarwidget/gijon-gijon-xixon-id33024?w=g4p111111001ohmffffffx4f86d9t95b6e9r1s6n1" frameborder="0" scrolling="no"></iframe>
+                    </div>
+                </div>
+                <div class="tab-content" id="tides-tab">
+                    <div class="tides-widget">
+                        <!-- Botón de recarga para el widget de mareas -->
+                        <button id="reload-tides-button" class="reload-button">
+                            <i class="fas fa-sync-alt"></i> Recargar mareas
+                        </button>
+                        
+                        <!-- Widget de Mareas -->
+                        <iframe id="tides-iframe" src="https://marea.ooo/es/widget/TICON%3Af7bc5589cc?padding=m&components=chart&background=transparent&theme=light"
+                                style="background-color: transparent"
+                                width="100%"
+                                height="500px"></iframe>
+                    </div>
+                </div>
+                <div class="tab-content" id="surf-tab">
+                    <div class="surf-widget">
+                        <!-- Widget de Oleaje -->
+                        <iframe src="https://es.surf-forecast.com/breaks/Playade-San-Lorenzo/forecasts/widget/dark" frameborder="0"></iframe>
+                    </div>
+                </div>
+                <div class="tab-content" id="sea-tab">
+                    <div class="sea-widget">
+                        <!-- Widget del Estado del Mar -->
+                        <iframe src="https://embed.windy.com/embed2.html?lat=43.548&lon=-5.636&detailLat=43.548&detailLon=-5.636&width=100%&height=500&zoom=11&level=surface&overlay=waves&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1" 
+                                frameborder="0" 
+                                width="100%" 
+                                height="500px">
+                        </iframe>
+                    </div>
+                </div>
+                <div class="tab-content" id="wind-tab">
+                    <div class="wind-widget">
+                        <!-- Widget de Viento -->
+                        <div id="windfinder-widget">
+                            <script type="text/javascript" src="https://es.windfinder.com/widget/forecast/js/puerto_deportivo_de_gijon_asturias_spain?unit_wave=m&unit_rain=mm&unit_temperature=c&unit_wind=kmh&unit_pressure=mbar&days=3&show_day=1&theme=dark"></script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navegación inferior estilo iOS -->
+        <nav class="app-nav">
+            <div class="nav-item active">
+                <i class="fas fa-video"></i>
+                <span>Webcams</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-cloud-sun"></i>
+                <span>Tiempo</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-water"></i>
+                <span>Mareas</span>
+            </div>
+            <div class="nav-item">
+                <i class="fas fa-wind"></i>
+                <span>Viento</span>
+            </div>
+        </nav>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script>
+        // Registrar el Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker registrado'))
+                    .catch(err => console.error('Error al registrar Service Worker:', err));
+            });
+        }
+        
+        // Fix para iframes en iOS
+        document.addEventListener('DOMContentLoaded', function() {
+            // Asegurar que los iframes se cargan correctamente en iOS
+            const fixIframes = function() {
+                const iframes = document.querySelectorAll('iframe');
+                iframes.forEach(iframe => {
+                    // Forzar recarga de iframe en iOS
+                    const src = iframe.src;
+                    iframe.src = '';
+                    setTimeout(() => {
+                        iframe.src = src;
+                    }, 100);
+                });
+            };
+            
+            // En iOS puede necesitar una recarga retrasada
+            if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+                setTimeout(fixIframes, 1000);
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Template - Gijón Live</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        
+        .icon-container {
+            width: 512px;
+            height: 512px;
+            background: linear-gradient(135deg, #0a84ff, #5ac8fa);
+            border-radius: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .icon-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        }
+        
+        .webcam {
+            width: 55%;
+            height: 35%;
+            background-color: #ffffff;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .webcam::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%);
+        }
+        
+        .webcam-lens {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, #2c2c2e 0%, #1c1c1e 70%, #000000 100%);
+            border-radius: 50%;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .webcam-lens::before {
+            content: '';
+            position: absolute;
+            top: 30%;
+            left: 30%;
+            width: 15%;
+            height: 15%;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+        }
+        
+        .weather-icons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .weather-icon {
+            font-size: 55px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="icon-container">
+        <div class="webcam">
+            <div class="webcam-lens"></div>
+        </div>
+        <div class="weather-icons">
+            <div class="weather-icon">🌤️</div>
+            <div class="weather-icon">🌊</div>
+            <div class="weather-icon">💨</div>
+        </div>
+    </div>
+</body>
+</html> 

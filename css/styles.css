@@ -1,0 +1,567 @@
+:root {
+    /* Variables para modo oscuro (predeterminado) */
+    --bg-primary: #000000;
+    --bg-secondary: #1c1c1e;
+    --bg-card: #2c2c2e;
+    --text-primary: #ffffff;
+    --text-secondary: #8e8e93;
+    --accent-color: #0a84ff;
+    --accent-secondary: #5ac8fa;
+    --danger-color: #ff453a;
+    --success-color: #30d158;
+    --border-radius: 12px;
+    --header-bg: rgba(0, 0, 0, 0.7);
+    --nav-bg: rgba(0, 0, 0, 0.7);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Variables para modo claro */
+html.light-mode {
+    --bg-primary: #f2f2f7;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #000000;
+    --text-secondary: #3a3a3c;
+    --header-bg: rgba(242, 242, 247, 0.8);
+    --nav-bg: rgba(242, 242, 247, 0.8);
+    --border-color: rgba(0, 0, 0, 0.1);
+    background-color: #f0f8ff;
+    color: #333;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    max-width: 100%;
+    margin: 0 auto;
+    position: relative;
+    padding-top: calc(60px + var(--safe-area-inset-top));
+    padding-bottom: calc(70px + var(--safe-area-inset-bottom));
+}
+
+/* Botón de cambio de tema */
+.theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.theme-toggle:active {
+    transform: scale(0.9);
+}
+
+/* Iconos para el modo claro/oscuro */
+html.light-mode .theme-toggle .fa-sun {
+    display: none;
+}
+
+html.light-mode .theme-toggle .fa-moon {
+    display: inline-block;
+}
+
+html.dark-mode .theme-toggle .fa-sun {
+    display: inline-block;
+}
+
+html.dark-mode .theme-toggle .fa-moon {
+    display: none;
+}
+
+/* Barra superior estilo iOS */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--header-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    height: calc(60px + var(--safe-area-inset-top));
+    padding: 0 16px;
+    padding-top: var(--safe-area-inset-top);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    transition: background-color 0.3s ease;
+}
+
+.app-header h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.status-icons {
+    display: flex;
+    align-items: center;
+}
+
+/* Secciones de contenido */
+section {
+    margin: 16px 0;
+    padding: 0 16px;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    padding-left: 4px;
+}
+
+/* Webcams */
+.webcam-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+@media (min-width: 768px) {
+    .webcam-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.webcam-card {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+html.light-mode .webcam-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.webcam-card h3 {
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.webcam-container {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+}
+
+.webcam-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Resumen meteorológico */
+.weather-summary-section {
+    margin-top: 24px;
+}
+
+.summary-card {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease;
+}
+
+.summary-loading {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+}
+
+#weather-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+}
+
+.summary-icon {
+    font-size: 1.5rem;
+    color: var(--accent-color);
+    width: 40px;
+    text-align: center;
+}
+
+.summary-content {
+    flex: 1;
+}
+
+.summary-title {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.summary-value {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Sección meteorológica con tabs */
+.weather-tabs {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+}
+
+.weather-tabs::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    white-space: nowrap;
+    transition: color 0.3s, background-color 0.3s;
+    cursor: pointer;
+    border-radius: 20px;
+}
+
+.tab-button.active {
+    color: var(--text-primary);
+    background-color: var(--bg-card);
+}
+
+.weather-content {
+    position: relative;
+    min-height: 300px;
+}
+
+.tab-content {
+    display: none;
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    padding: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Estilos unificados para todos los widgets */
+.weather-widget,
+.tides-widget,
+.surf-widget,
+.sea-widget,
+.wind-widget {
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--border-radius);
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* En modo oscuro, ajustar el fondo de los widgets */
+html.dark-mode .weather-widget,
+html.dark-mode .tides-widget,
+html.dark-mode .surf-widget,
+html.dark-mode .sea-widget,
+html.dark-mode .wind-widget {
+    background-color: rgba(30, 30, 30, 0.8);
+}
+
+.tides-widget iframe,
+.surf-widget iframe,
+.sea-widget iframe,
+.weather-widget iframe {
+    width: 100%;
+    min-height: 400px;
+    border: none;
+    display: block;
+}
+
+#windfinder-widget {
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Navegación inferior estilo iOS */
+.app-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    height: calc(70px + var(--safe-area-inset-bottom));
+    padding-bottom: var(--safe-area-inset-bottom);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1000;
+    border-top: 0.5px solid var(--border-color);
+    transition: background-color 0.3s ease;
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    color: var(--text-secondary);
+    transition: color 0.3s;
+    flex: 1;
+    max-width: 20%;
+}
+
+.nav-item i {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+.nav-item span {
+    font-size: 0.7rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.nav-item.active {
+    color: var(--accent-color);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.tab-content.active {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Media Queries */
+@media (min-width: 992px) {
+    .app-container {
+        max-width: 960px;
+    }
+}
+
+/* Fix para widgets externos en modo oscuro/claro */
+html.dark-mode iframe {
+    background-color: #000;
+}
+
+html.light-mode iframe {
+    background-color: #fff;
+}
+
+/* Fondos dinámicos según el clima */
+.fondo-soleado {
+    background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+}
+
+.fondo-nublado {
+    background: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%);
+}
+
+.fondo-lluvia {
+    background: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+    animation: lluvia 1s linear infinite;
+}
+
+@keyframes lluvia {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: 0% 100%;
+    }
+}
+
+/* Estilos para los contenedores de información */
+#clima-actual, #altura-olas, #temperatura-agua, #mareas {
+    transition: all 0.3s ease;
+}
+
+#clima-actual:hover, #altura-olas:hover, #temperatura-agua:hover, #mareas:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para el widget del tiempo */
+.ancho {
+    width: 100% !important;
+    max-width: none !important;
+    min-height: 300px !important;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+#c_9978d0661e645be6f0d9da0c7f338b91 {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 300px !important;
+}
+
+#c_9978d0661e645be6f0d9da0c7f338b91 iframe {
+    width: 100% !important;
+    height: 350px !important;
+}
+
+/* Estilos para las mareas */
+#mareas .marea-item {
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+#mareas .marea-hora {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+#mareas .marea-tipo {
+    margin-right: 0.5rem;
+}
+
+#mareas .marea-altura {
+    color: #4A6FA5;
+}
+
+/* Correcciones para el tema claro/oscuro */
+html.light-mode {
+    --bg-primary: #f2f2f7;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #000000;
+    --text-secondary: #3a3a3c;
+    --header-bg: rgba(242, 242, 247, 0.8);
+    --nav-bg: rgba(242, 242, 247, 0.8);
+    --border-color: rgba(0, 0, 0, 0.1);
+    background-color: #f0f8ff;
+    color: #333;
+}
+
+html.dark-mode {
+    --bg-primary: #000000;
+    --bg-secondary: #1c1c1e;
+    --bg-card: #2c2c2e;
+    --text-primary: #ffffff;
+    --text-secondary: #8e8e93;
+    --header-bg: rgba(0, 0, 0, 0.7);
+    --nav-bg: rgba(0, 0, 0, 0.7);
+    --border-color: rgba(255, 255, 255, 0.1);
+    background-color: #121212;
+    color: #f1f1f1;
+}
+
+/* Corregir estilos específicos del tab weather */
+#weather-tab {
+    padding: 0;
+    background-color: transparent;
+}
+
+/* Eliminar estilos específicos que causan inconsistencias */
+.weather-widget {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Botón de recarga */
+.reload-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin: 10px auto;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.reload-button:hover {
+    background-color: var(--bg-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.reload-button:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.reload-button i {
+    margin-right: 8px;
+}
+
+/* Animación de rotación para icono de recarga */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.reload-button.loading i {
+    animation: spin 1s linear infinite;
+} 
